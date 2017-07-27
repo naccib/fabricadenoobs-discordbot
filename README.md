@@ -36,6 +36,7 @@ Then just build with:
 ```
 yarn ts:build
 ```
-And run with: ```
+And run with:
+```
 yarn ts:run
 ```
