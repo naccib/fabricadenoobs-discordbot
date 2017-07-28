@@ -11,32 +11,14 @@ yarn install # if you use yarn
 npm install * # if you use npm
 ```
 
-Now you are going to create a `config.ts` file in the `src` directory in the following format: 
-```ts
-/**
- * Standard configuration class. Just ensuring type safety.
- */
-export interface IConfig
-{
-    token : string;
-    prefixes: Array<string>;
-};
-
-/**
- * Configuration object.
- */
-export const config: IConfig =
-{
-    token: 'YOUR-BOT-TOKEN',
-    prefixes: ['&']
-};
+Now set the following enviroment variables:
+```
+TOKEN=YOUR_BOT_TOKEN
+PREFIX=YOUR_BOT_PREFIX
 ```
 
-Then just build with:
+Then just run
 ```
-yarn ts:build
+nf start
 ```
-And run with:
-```
-yarn ts:run
-```
+To start the bot.
