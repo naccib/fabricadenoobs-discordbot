@@ -1,6 +1,7 @@
 import { Command } from '../parser/command';
 import { List } from 'immutable';
 import { role } from './giveRole';
+import { ping } from './ping';
 import { buildHelpEmbed } from './help';
 
 export const allCommands : List<Command> = List([
@@ -11,5 +12,6 @@ export const allCommands : List<Command> = List([
 
         msg.channel.send(helpEmbed);
     }),
-    role
+    role,
+    ping
 ]);

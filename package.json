@@ -6,6 +6,7 @@
   "dependencies": {
     "@types/node": "^8.0.17",
     "discord.js": "^11.1.0",
+    "foreman": "2.0.0",
     "immutable": "^3.8.1",
     "minimist": "^1.2.0",
     "tsc": "^1.20150623.0",
@@ -13,6 +14,7 @@
   },
   "scripts": {
     "ts:build": "node ./node_modules/typescript/lib/tsc.js",
-    "ts:run": "node build/main.js"
+    "ts:run": "node build/main.js",
+    "start": "nf start"
   }
 }
