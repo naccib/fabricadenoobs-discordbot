@@ -8,8 +8,7 @@ const roles = List<string>([
     'Pentester',
     'Criativo',
     'Matemático',
-    'Político',
-    'Leitor'
+    'Político'
 ]);
 
 const roleLimit = 4;
@@ -60,19 +59,10 @@ const isSafeRole = (role : Role) : boolean => {
 const getRole = (roleName : string, roles : List<Role>) : Role => 
     roles.find(role => role.name.toLowerCase() === roleName.toLowerCase());
 
-/**
- * TODO: Get this to work. This function always returns 0.
- */
-const countUserRoles = (userRoles: List<Role>, avaliableRoles: List<Role>) : number =>
-    userRoles.toSet().intersect(avaliableRoles.toSet()).size
-
 
 const onAction = (args: Array<string>, message : Message, context : Client) => {
     const avaliableRoles = getAvaliableRoles(message.guild, roles);
     const user = message.guild.member(message.author);
-
-    const userRolesCount = countUserRoles(List<Role>(user.roles), avaliableRoles);
-    console.log(`Rolecount para ${message.author.username}: ${userRolesCount}`);
 
     if(args.length === 0)
     {
@@ -94,10 +84,7 @@ const onAction = (args: Array<string>, message : Message, context : Client) => {
         .member(context.user)
         .hasPermission( 'MANAGE_ROLES_OR_PERMISSIONS'))
         {
-            if(userRolesCount >= roleLimit)
-                message.channel.send('Você já atigiu o limite máximo de 4 cargos.');
-            else
-                user.addRole(role);
+            user.addRole(role);
         }
         else
         {

@@ -1,10 +1,15 @@
 import { Command } from '../parser/command';
 import { List } from 'immutable';
 import { role } from './giveRole';
+import { buildHelpEmbed } from './help';
 
 export const allCommands : List<Command> = List([
-    new Command('hello', 'Fala world.', (args, msg) => {
-        msg.channel.sendMessage('World!');
+    new Command('help', 'Diz essa mensagem.', (args, msg) => {
+        const helpEmbed = buildHelpEmbed(List(allCommands));
+        
+        console.assert(helpEmbed != undefined, 'Help is undefined!');
+
+        msg.channel.send(helpEmbed);
     }),
     role
 ]);

@@ -49,12 +49,9 @@ const isSafeRole = (role) => {
     });
 };
 const getRole = (roleName, roles) => roles.find(role => role.name.toLowerCase() === roleName.toLowerCase());
-const countUserRoles = (userRoles, avaliableRoles) => userRoles.toSet().intersect(avaliableRoles.toSet()).size;
 const onAction = (args, message, context) => {
     const avaliableRoles = getAvaliableRoles(message.guild, roles);
     const user = message.guild.member(message.author);
-    const userRolesCount = countUserRoles(immutable_1.List(user.roles), avaliableRoles);
-    console.log(`Rolecount para ${message.author.username}: ${userRolesCount}`);
     if (args.length === 0) {
         message.channel.send({ embed: buildRoleEmbed(avaliableRoles) });
         return;
@@ -69,10 +66,7 @@ const onAction = (args, message, context) => {
         if (message.guild
             .member(context.user)
             .hasPermission('MANAGE_ROLES_OR_PERMISSIONS')) {
-            if (userRolesCount >= roleLimit)
-                message.channel.send('Você já atigiu o limite máximo de 4 cargos.');
-            else
-                user.addRole(role);
+            user.addRole(role);
         }
         else {
             message.channel.send(`:frowning:  Ooops... Parece que eu não tenho permissão para adicionar cargos nesse servidor.`);
