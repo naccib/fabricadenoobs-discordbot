@@ -4,7 +4,7 @@ import { Role, Guild, Message, RichEmbed, Channel } from 'discord.js';
 
 export const buildHelpEmbed = (commands: List<Command>) : RichEmbed =>
     new RichEmbed({
-        title: 'Equerdomacho | Ajuda',
+        title: 'Esquerdomacho | Ajuda',
         color: 0x42B5EF,
         description: 'Eu sou um robô feito para, a priori, dar cargos para usuários.',
         fields: commands.map(getField).toArray()
