@@ -14,7 +14,12 @@ export const parseMessage = (message : Message, prefixes : Array<string>, comman
 
     console.log(`[PARSER] Found candidate command with identifier: "${identifier}" and ${args.length} arguments: \n${args.toString()}`);
 
-    return [findCommand(identifier, commands), args];
+    const foundCommand = findCommand(identifier, commands);
+
+    if(foundCommand == undefined)
+        console.log(`[PARSER] Could not find command with identifier "${identifier}".`);
+
+    return [foundCommand, args];
 };
 
 const isCommand = (text: string, prefixes: Array<string>)  : boolean =>
