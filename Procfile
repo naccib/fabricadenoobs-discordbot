@@ -1,0 +1,1 @@
+worker: npm run ts:build && npm run ts:run
