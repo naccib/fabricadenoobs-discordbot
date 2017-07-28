@@ -10,7 +10,9 @@ export const allCommands : List<Command> = List([
         
         console.assert(helpEmbed != undefined, 'Help is undefined!');
 
-        msg.channel.send(helpEmbed);
+        msg.channel.send({
+            embed: helpEmbed
+        });
     }),
     role,
     ping
