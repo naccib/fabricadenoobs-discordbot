@@ -1,15 +1,17 @@
 import { Client, Message } from 'discord.js';
-import { config } from './config';
 import { parseMessage } from './parser/parser';
 import { allCommands } from './commands/all';
 import { List } from 'immutable';
 import { Timer } from './timer';
+import { config } from 'dotenv';
+
+config();
 
 const handleMessage = (message : Message, context : Client) => {
     if(message.author.id !== context.user.id)
     {
         console.log(`Got message at ${message.guild.name}#${message.channel.toString()}`);
-        const [command, args] = parseMessage(message, config.prefixes, allCommands);
+        const [command, args] = parseMessage(message, [ process.env.PREFIX ] , allCommands);
 
         if(command)
             command.onAction(args, message, context);
@@ -25,4 +27,4 @@ bot.on('ready', () => {
     console.log(`Connected succefully in ${connectTimer.end()} ms as ${bot.user.username}.`);
 });
 
-bot.login(config.token);
+bot.login(process.env.TOKEN);
