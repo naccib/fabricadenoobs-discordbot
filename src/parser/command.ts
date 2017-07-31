@@ -1,9 +1,10 @@
 import { Message, Client } from 'discord.js';
+import { Iterable } from 'immutable';
 
 /**
  * Command action type.
  */
-type commandAction = (args : Array<string>, message : Message, context : Client) => void;
+type commandAction = (args: Iterable<number, string>, message: Message, context: Client) => void;
 
 /**
  * Represents a command.

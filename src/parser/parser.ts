@@ -1,10 +1,10 @@
 import { Message } from 'discord.js';
 import { Command } from './command';
-import { List } from 'immutable';
+import { List, Iterable } from 'immutable';
 
-export const parseMessage = (message : Message, prefixes : Array<string>, commands : List<Command>) : [Command, Array<string>] => {
+export const parseMessage = (message : Message, prefixes : Array<string>, commands : List<Command>) : [Command, Iterable<number, string>] => {
     if(!isCommand(message.cleanContent, prefixes))
-        return [undefined, []];
+        return [undefined, Iterable([])];
 
     const content  = removePrefixes(message.cleanContent, prefixes);
     const splitted = content.split(' ');
@@ -19,7 +19,7 @@ export const parseMessage = (message : Message, prefixes : Array<string>, comman
     if(foundCommand == undefined)
         console.log(`[PARSER] Could not find command with identifier "${identifier}".`);
 
-    return [foundCommand, args];
+    return [foundCommand, Iterable(args)];
 };
 
 const isCommand = (text: string, prefixes: Array<string>)  : boolean =>

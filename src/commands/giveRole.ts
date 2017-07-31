@@ -1,5 +1,5 @@
 import { Command } from '../parser/command';
-import { List } from 'immutable';
+import { List, Iterable } from 'immutable';
 import { Role, Guild, Message, RichEmbed, Client } from 'discord.js';
 
 const roles = List<string>([
@@ -48,7 +48,7 @@ const getAvaliableRoles = (guild: Guild, wantedRoles: List<string>) : List<Role>
  * Determines wether a role is safe or not.
  * TODO: Make this work. It is returning 'false' from every call.
  */
-const isSafeRole = (role : Role) : boolean => {
+const isSafeRole = (role: Role) : boolean => {
     const unsafePermissions = List<string>(['ADMINISTRATOR', 'KICK_MEMBERS', 'BAN_MEMBERS', 'MANAGE_CHANNELS', 'MANAGE_GUILD', 'MANAGE_MESSAGES', 'MANAGE_ROLES_OR_PERMISSIONS']);
 
     return !unsafePermissions.some(perm => {
@@ -56,15 +56,15 @@ const isSafeRole = (role : Role) : boolean => {
     });
 };
 
-const getRole = (roleName : string, roles : List<Role>) : Role => 
+const getRole = (roleName: string, roles: List<Role>) : Role => 
     roles.find(role => role.name.toLowerCase() === roleName.toLowerCase());
 
 
-const onAction = (args: Array<string>, message : Message, context : Client) => {
+const onAction = (args: Iterable<number, string>, message: Message, context: Client) => {
     const avaliableRoles = getAvaliableRoles(message.guild, roles);
     const user = message.guild.member(message.author);
 
-    if(args.length === 0)
+    if(args.size === 0)
     {
         message.channel.send({ embed: buildRoleEmbed(avaliableRoles) });
         return;

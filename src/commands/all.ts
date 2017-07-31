@@ -3,6 +3,7 @@ import { List } from 'immutable';
 import { role } from './giveRole';
 import { ping } from './ping';
 import { buildHelpEmbed } from './help';
+import { staffInfo } from './staffInfo';
 
 export const allCommands : List<Command> = List([
     new Command('help', 'Diz essa mensagem.', (args, msg) => {
@@ -15,5 +16,6 @@ export const allCommands : List<Command> = List([
         });
     }),
     role,
-    ping
+    ping,
+    staffInfo
 ]);
