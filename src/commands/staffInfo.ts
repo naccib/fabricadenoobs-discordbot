@@ -1,12 +1,12 @@
 import { Command } from '../parser/command';
+import { downloadMessages, getUsersFromRoles } from '../utils';
 import { Set, Iterable, List, OrderedMap } from 'immutable';
 import { Role, Guild, Message, RichEmbed, Channel, GuildMember, TextChannel } from 'discord.js';
 
-const modArgAliases = Set(['mod', 'mods', 'moderadores', 'moderator']);
-const adminArgAliases = Set(['adm', 'admin', 'admins', 'administradores']);
-const modlogChannelName = 'modlog';
+type ModData = { mod: GuildMember, messageCount: number, performanceEmoji: string };
 
-type modLogDataType = OrderedMap<number, string>
+const rankArgAliases = Set(['rank', 'list']);
+const adminArgAliases = Set(['adm', 'admin', 'admins', 'administradores']);
 
 const getStaffRoles = (server: Guild) : Set<Role> => {
     const staffRoleNames = Set(['Moderador', 'Administrador']);
@@ -45,70 +45,73 @@ const getSummary = (server: Guild) : RichEmbed =>
 
 /// Mod Command
 
-const getMessageCountFromUser = (user: GuildMember, messages: List<Message>) : number => {
+const getMessageCountFromUser = (user: GuildMember, messages: Set<Message>) : number => {
     return messages
             .filter(msg => msg.author.id === user.id)
             .size;
 };
 
-/**
- * Gets all moderators data and returns it as a Iterable whose key is the message count on the mod log channel.
- * @param server The server to get the data from.
- */
-const getModLogData = async (server: Guild) : Promise<modLogDataType> => {
-    const modlog = server.channels.array().find(ch => ch.name === modlogChannelName) as TextChannel;
-    const mods   = getStaffRoles(server)
-                    .map(role => List(role.members.array()))
-                    .flatten()
-                    .toList() as List<GuildMember>;
+const getPerformanceEmoji = (user: GuildMember, messageCount: number) => {
+    const admRole = user.guild.roles.find(x => x.name === 'Administrador').id;
+    const isAdmin = Set(user.roles.array().map(role => role.id)).contains(admRole);
 
-    if(!modlog)
-        return new Promise<modLogDataType>((resolve, reject) => {
-            reject('Could not find #modlog channel.');
-        });
+    if(isAdmin)
+        return ':diamonds:';
 
-    console.log(`Found ${mods.size} mods`);
-
-    const today = new Date();
-    const lastWeek = today.setDate((today.getDate() - 7));
-
-    const messages = await modlog.fetchMessages({
-        after: new Date(lastWeek).toUTCString()
-    });
-
-    if(!messages)
-        return new Promise<modLogDataType>((resolve, reject) => {
-            reject('Could not fetch messages from #modlog channel.');
-        });
-
-    const messagesList = List(messages.array());
-
-    const result = mods
-                    .map(mod => [getMessageCountFromUser(mod, messagesList), mod.user.username])
-                    .toMap()
-                    .sortBy((v, k) => k)
-                    .reverse();
-
-    return new Promise<modLogDataType>( (resolve, reject) => {
-        resolve(OrderedMap<number, string>(result));
-    });
+    if(messageCount === 0)
+        return ':thermometer_face:';
+    else if(messageCount > 0 && messageCount <= 10)
+        return ':frowning:'
+    else if(messageCount > 10 && messageCount <= 20)
+        return ':smirk:'
+    else
+        return ':heart_eyes:';
 };
 
-const getModRankEmbedField = (mod: string, msgNum: number) : { name: any, value: any, inline: boolean } => {
+const processData = (messages: Set<Message>, mods: Set<GuildMember>) : Set<ModData> => {
+    return mods.map(moderator => {
+        const messageCount = getMessageCountFromUser(moderator, messages);
+
+        return {
+            mod: moderator,
+            messageCount: messageCount,
+            performanceEmoji: getPerformanceEmoji(moderator, messageCount)
+        } as ModData;
+    })
+    .toSet()
+    .sortBy(mod => mod.messageCount)
+    .reverse() as Set<ModData>;
+};
+
+const getModRankField = (mod: ModData) : { name: any, value: any, inline: boolean } =>
+{
     return {
-        name: mod.toString(),
-        value: `Esse membro da equipe participou ${msgNum} vezes no #${modlogChannelName}.`,
+        name: `${mod.performanceEmoji} ${mod.mod.displayName}`,
+        value: `${mod.messageCount} participações.`,
         inline: true
     };
 };
 
-const getModRankEmbed = (data: modLogDataType) : RichEmbed =>
+const getModRankEmbed = (data: Set<ModData>) : RichEmbed =>
     new RichEmbed({
-        title: 'Esquedomacho | Sumário da Staff',
-        description: 'Representa a staff, em ordem de mais ativos atualmente',
-        fields: data.map((mod, msgNum) => getModRankEmbedField(mod, msgNum)).toArray(),
-        color: 0x42B5EF
-    })
+        title: 'Esquerdomacho | Staff Rank',
+        description: 'Mostra o rank geral da staff. Esse rank leva em conta apenas mensagens na #modlog.\nUse `&staff <membro>` para informações mais detalhadas de um staff.',
+        fields: data.map(getModRankField).toArray(),
+        color: 0x42B5EF,
+        footer: {
+            text: 'Equipe manejada com ♥ pelo Satanael e naccib'
+        }
+    });
+
+const sendModRankEmbed = async (server: Guild, channel: TextChannel) => {
+    const messages = await downloadMessages(server, 'modlog');
+    const mods     = getUsersFromRoles(getStaffRoles(server), server);
+
+    const data = processData(messages, mods);
+    channel.send({
+        embed: getModRankEmbed(data)
+    });
+};
 
 /// Command Definition
 
@@ -120,17 +123,8 @@ export const staffInfo = new Command('staff', 'Mostra informações sobre modera
             embed: getSummary(msg.guild)
         });
 
-    else if(modArgAliases.contains(specifiedRole))
-        getModLogData(msg.guild)
-                .catch(msg.reply)
-                .then(data => {
-                    console.log(`Typeof result: ${typeof data}\nResult = ${data}`);
-                    const embed = getModRankEmbed(data as OrderedMap<number, string>);
-
-                    console.dir(embed.fields);
-
-                    msg.channel.send({
-                        embed: embed
-                    })
-                });
+    else if(rankArgAliases.contains(specifiedRole))
+    {
+        sendModRankEmbed(msg.guild, msg.channel as TextChannel);
+    }
 });

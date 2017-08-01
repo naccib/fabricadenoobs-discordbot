@@ -16,4 +16,4 @@ const getField = (command: Command) : { name: any, value: any, inline: boolean }
         value: command.help,
         inline: true
     };
-}
+};
