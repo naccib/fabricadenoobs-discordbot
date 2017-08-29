@@ -1,12 +1,10 @@
 import { Command } from '../parser/command';
-import { downloadMessages, getUsersFromRoles } from '../utils';
+import { downloadMessages, getUsersFromRoles, ModData } from '../utils';
+import { Plotter } from '../plot/plotter';
 import { Set, Iterable, List, OrderedMap } from 'immutable';
 import { Role, Guild, Message, RichEmbed, Channel, GuildMember, TextChannel } from 'discord.js';
 
-type ModData = { mod: GuildMember, messageCount: number, performanceEmoji: string };
-
 const rankArgAliases = Set(['rank', 'list']);
-const adminArgAliases = Set(['adm', 'admin', 'admins', 'administradores']);
 
 const getStaffRoles = (server: Guild) : Set<Role> => {
     const staffRoleNames = Set(['Moderador', 'Administrador']);
@@ -45,10 +43,10 @@ const getSummary = (server: Guild) : RichEmbed =>
 
 /// Mod Command
 
-const getMessageCountFromUser = (user: GuildMember, messages: Set<Message>) : number => {
+const getMessagesFromUser = (user: GuildMember, messages: Set<Message>) : Set<Message> => {
     return messages
             .filter(msg => msg.author.id === user.id)
-            .size;
+            .toSet();
 };
 
 const getPerformanceEmoji = (user: GuildMember, messageCount: number) => {
@@ -70,16 +68,16 @@ const getPerformanceEmoji = (user: GuildMember, messageCount: number) => {
 
 const processData = (messages: Set<Message>, mods: Set<GuildMember>) : Set<ModData> => {
     return mods.map(moderator => {
-        const messageCount = getMessageCountFromUser(moderator, messages);
+        const filteredMessages = getMessagesFromUser(moderator, messages);
 
         return {
             mod: moderator,
-            messageCount: messageCount,
-            performanceEmoji: getPerformanceEmoji(moderator, messageCount)
+            messages: filteredMessages,
+            performanceEmoji: getPerformanceEmoji(moderator, filteredMessages.size)
         } as ModData;
     })
     .toSet()
-    .sortBy(mod => mod.messageCount)
+    .sortBy(mod => mod.messages.size)
     .reverse() as Set<ModData>;
 };
 
@@ -87,7 +85,7 @@ const getModRankField = (mod: ModData) : { name: any, value: any, inline: boolea
 {
     return {
         name: `${mod.performanceEmoji} ${mod.mod.displayName}`,
-        value: `${mod.messageCount} participações.`,
+        value: `${mod.messages.size} participações.`,
         inline: true
     };
 };
@@ -113,6 +111,15 @@ const sendModRankEmbed = async (server: Guild, channel: TextChannel) => {
     });
 };
 
+// Staff-Specific Command
+
+const sendStaffEmbed = async (server: Guild, staff: GuildMember, channel: TextChannel) => {
+    const messages = await downloadMessages(server, 'modlog');
+    const data = processData(messages, Set([ staff ])).first();
+
+    Plotter.getPerformanceGraph(data); 
+};
+
 /// Command Definition
 
 export const staffInfo = new Command('staff', 'Mostra informações sobre moderadores e admnistradores.', (args, msg, ctx) => {
@@ -126,5 +133,16 @@ export const staffInfo = new Command('staff', 'Mostra informações sobre modera
     else if(rankArgAliases.contains(specifiedRole))
     {
         sendModRankEmbed(msg.guild, msg.channel as TextChannel);
+    }
+    else if(msg.mentions.members.size > 0)
+    {
+        const staffs = getUsersFromRoles(getStaffRoles(msg.guild), msg.guild);
+        const mentioned = msg.mentions.members.first();
+
+        if(staffs.find(staff => staff.id === mentioned.id) != undefined) // mentioned user is staff.
+        {
+            console.log(`Send staff embed for ${mentioned.nickname}`);
+            sendStaffEmbed(msg.guild, mentioned, msg.channel as TextChannel);
+        }
     }
 });

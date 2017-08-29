@@ -71,6 +71,13 @@ const onAction = (args: Iterable<number, string>, message: Message, context: Cli
     }
 
     const roleToFind = args[0];
+
+    if(!roleToFind)
+    {
+        message.channel.send(`Use: \`&cargo [CARGO]\`.`);
+        return;
+    }
+
     const role       = getRole(roleToFind, avaliableRoles);
 
     if(!role)
@@ -78,6 +85,7 @@ const onAction = (args: Iterable<number, string>, message: Message, context: Cli
         message.channel.send(`Não consegui achar nenhum cargo chamado \`${roleToFind}\`.\n\nDica: use \`&cargo\` para ver todos os cargos disponíveis.`);
         return;
     }
+    
     else
     {
         if(message.guild

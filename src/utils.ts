@@ -2,6 +2,11 @@ import { Guild, GuildChannel, GuildMember, TextChannel, Message, Role } from 'di
 import { Set } from 'immutable';
 
 /**
+ * This type is used as a statiscal data holder.
+ */
+export type ModData = { mod: GuildMember, performanceEmoji: string, messages: Set<Message> };
+
+/**
  * Downloads 100 messages from a channel from a given server.
  * @param server The server to look for the channel.
  * @param channelName The name of the channel to be looked for.
