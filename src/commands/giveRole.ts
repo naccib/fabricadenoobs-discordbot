@@ -70,14 +70,7 @@ const onAction = (args: Iterable<number, string>, message: Message, context: Cli
         return;
     }
 
-    const roleToFind = args[0];
-
-    if(!roleToFind)
-    {
-        message.channel.send(`Use: \`&cargo [CARGO]\`.`);
-        return;
-    }
-
+    const roleToFind = args.first();
     const role       = getRole(roleToFind, avaliableRoles);
 
     if(!role)
